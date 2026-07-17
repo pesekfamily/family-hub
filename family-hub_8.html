@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Family Hub">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Joe & Julia — Family Hub</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f1;
+    --bg3: #eeedea;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9b9b97;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --success-bg: #eaf3de;
+    --success-text: #27500a;
+    --danger-text: #a32d2d;
+    --blue-bg: #e6f1fb;
+    --blue-text: #0c447c;
+    --coral-bg: #faece7;
+    --coral-text: #712b13;
+    --purple-bg: #eeedfe;
+    --purple-text: #3c3489;
+    --teal-bg: #e1f5ee;
+    --teal-text: #085041;
+    --amber-bg: #faeeda;
+    --amber-text: #633806;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg2: #252523;
+      --bg3: #2e2e2b;
+      --text: #f0efe8;
+      --text2: #a0a09a;
+      --text3: #6a6a64;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --blue-bg: #0c2d4a;
+      --blue-text: #85b7eb;
+      --coral-bg: #3a1a10;
+      --coral-text: #f0997b;
+      --purple-bg: #1e1a3a;
+      --purple-text: #afa9ec;
+      --teal-bg: #0a2a20;
+      --teal-text: #5dcaa5;
+      --amber-bg: #2a1a08;
+      --amber-text: #ef9f27;
+      --success-bg: #173404;
+      --success-text: #97c459;
+      --danger-text: #f09595;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+  .shell { max-width: 480px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 52px 16px 0; background: var(--bg); }
+  .topbar-title { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .topbar-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .nav { display: flex; border-bottom: 0.5px solid var(--border); margin-top: 12px; background: var(--bg); position: sticky; top: 0; z-index: 10; }
+  .nav-btn { flex: 1; padding: 10px 0; font-size: 13px; font-weight: 500; color: var(--text2); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color .15s; }
+  .nav-btn.on { color: var(--text); border-bottom-color: var(--text); }
+  .page { display: none; padding: 12px 16px 100px; flex: 1; }
+  .page.on { display: block; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 10px 0 6px; }
+  .stat { background: var(--bg2); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+  .stat-n { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat-l { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* Filter chips */
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { padding: 6px 13px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--border); background: none; cursor: pointer; white-space: nowrap; color: var(--text2); transition: all .12s; }
+  .chip.on { background: var(--text); color: var(--bg); border-color: transparent; }
+
+  /* Task cards */
+  .task-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 13px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; transition: opacity .15s; }
+  .chk { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); background: none; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: background .1s, border-color .1s; }
+  .chk.ticked { background: var(--success-bg); border-color: var(--success-text); }
+  .chk.ticked i { color: var(--success-text); }
+  .tbody { flex: 1; min-width: 0; }
+  .tname { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .tmeta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
+  .pill { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .pill-joe { background: var(--blue-bg); color: var(--blue-text); }
+  .pill-julia { background: var(--coral-bg); color: var(--coral-text); }
+  .pill-both { background: var(--purple-bg); color: var(--purple-text); }
+  .pill-cat { background: var(--bg2); color: var(--text2); }
+  .pill-recur { background: var(--teal-bg); color: var(--teal-text); display: inline-flex; align-items: center; gap: 3px; }
+  .due-txt { font-size: 10px; color: var(--text2); }
+  .due-txt.late { color: var(--danger-text); }
+  .tact { display: flex; gap: 2px; flex-shrink: 0; }
+  .ibt { width: 28px; height: 28px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 7px; color: var(--text2); transition: background .1s; }
+  .ibt:hover, .ibt:active { background: var(--bg2); }
+
+  /* Done tasks */
+  .done-section { margin-top: 18px; }
+  .done-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: 8px; }
+  .task-card.done-card { opacity: .45; }
+  .task-card.done-card .tname { text-decoration: line-through; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 28px; right: 50%; transform: translateX(calc(50% + min(50vw, 240px) - 72px)); width: 54px; height: 54px; border-radius: 50%; background: var(--text); color: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 26px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
+
+  /* Calendar */
+  .refresh-banner { background: var(--bg2); border-radius: var(--radius-md); padding: 10px 13px; font-size: 12px; color: var(--text2); display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; line-height: 1.5; }
+  .refresh-banner i { flex-shrink: 0; margin-top: 1px; }
+  .cal-section { margin-bottom: 20px; }
+  .cal-head { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+  .cal-icon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .cal-icon.wknight { background: var(--blue-bg); color: var(--blue-text); }
+  .cal-icon.wkend { background: var(--amber-bg); color: var(--amber-text); }
+  .cal-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .cal-subtitle { font-size: 11px; color: var(--text2); }
+  .cal-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 11px 13px; margin-bottom: 7px; display: flex; align-items: center; gap: 12px; }
+  .cal-date { text-align: center; min-width: 40px; flex-shrink: 0; }
+  .cal-month { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; }
+  .cal-day { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.1; }
+  .cal-dow { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+  .cal-divider { width: 0.5px; height: 36px; background: var(--border); flex-shrink: 0; }
+  .cal-info { flex: 1; min-width: 0; }
+  .cal-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .cal-time { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  .empty { text-align: center; padding: 32px 16px; color: var(--text2); font-size: 13px; line-height: 1.6; }
+  .empty i { font-size: 30px; display: block; margin-bottom: 8px; opacity: .35; }
+  .cal-empty { text-align: center; padding: 14px 0; color: var(--text2); font-size: 12px; }
+
+  /* Setup */
+  .setup-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 14px; }
+  .setup-step { display: flex; gap: 10px; margin-bottom: 14px; font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .setup-step:last-child { margin-bottom: 0; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--bg2); font-size: 11px; font-weight: 600; color: var(--text2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .setup-step code { font-family: monospace; font-size: 11px; background: var(--bg2); padding: 1px 5px; border-radius: 4px; color: var(--text); }
+  .url-row { display: flex; gap: 8px; margin-top: 10px; }
+  .url-row input { flex: 1; font-size: 13px; padding: 9px 11px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); outline: none; }
+  .url-row input:focus { border-color: var(--text2); }
+  .url-row button { padding: 9px 16px; border-radius: var(--radius-md); background: var(--text); color: var(--bg); border: none; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .status-line { font-size: 12px; color: var(--text2); margin-top: 8px; min-height: 18px; }
+  .status-ok { color: var(--success-text); }
+  .status-err { color: var(--danger-text); }
+  .section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin: 16px 0 8px; }
+  .script-box { background: var(--bg2); border-radius: var(--radius-md); padding: 12px; font-size: 11px; font-family: monospace; color: var(--text2); line-height: 1.65; overflow-x: auto; white-space: pre; border: 0.5px solid var(--border); }
+  .copy-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: none; color: var(--text2); cursor: pointer; margin-top: 8px; }
+  .copy-btn:active { background: var(--bg2); }
+  .sync-status-badge { display: flex; align-items: center; gap: 7px; padding: 9px 12px; background: var(--bg2); border-radius: var(--radius-md); font-size: 12px; color: var(--text2); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); flex-shrink: 0; }
+  .dot.ok { background: #27500a; }
+  .dot.err { background: #a32d2d; }
+
+  /* Modal */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: flex-end; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--bg); border-radius: 18px 18px 0 0; padding: 20px 16px 40px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+  .modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+  .frow { margin-bottom: 13px; }
+  .frow label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; font-weight: 500; }
+  .frow input, .frow select { width: 100%; font-size: 14px; padding: 10px 11px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); outline: none; -webkit-appearance: none; }
+  .frow input:focus, .frow select:focus { border-color: var(--text); }
+  .frow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mbtns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-p { flex: 1; padding: 12px; border-radius: var(--radius-md); background: var(--text); color: var(--bg); border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .btn-c { padding: 12px 18px; border-radius: var(--radius-md); background: none; border: 0.5px solid var(--border2); color: var(--text2); cursor: pointer; font-size: 14px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Joe & Julia</div>
+      <div class="topbar-sub" id="sync-sub">Family hub</div>
+    </div>
+    <button class="ibt" onclick="showPage('setup', document.querySelectorAll('.nav-btn')[2])" aria-label="Settings" style="width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--text2)">
+      <i class="ti ti-settings" aria-hidden="true" style="font-size:20px"></i>
+    </button>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn on" onclick="showPage('tasks', this)">Tasks</button>
+    <button class="nav-btn" onclick="showPage('calendar', this)">Calendar</button>
+    <button class="nav-btn" onclick="showPage('setup', this)">Sync</button>
+  </div>
+
+  <!-- TASKS PAGE -->
+  <div class="page on" id="page-tasks">
+    <div id="stats-row" class="stats"></div>
+    <div class="chips" id="chip-row">
+      <button class="chip on" onclick="setFilter('All', this)">All</button>
+      <button class="chip" onclick="setFilter('Joe', this)">Joe</button>
+      <button class="chip" onclick="setFilter('Julia', this)">Julia</button>
+      <button class="chip" onclick="setFilter('Home', this)">Home</button>
+      <button class="chip" onclick="setFilter('Parenting', this)">Parenting</button>
+      <button class="chip" onclick="setFilter('Vacation', this)">Vacation</button>
+      <button class="chip" onclick="setFilter('Other', this)">Other</button>
+    </div>
+    <div id="task-list"></div>
+    <div id="done-list"></div>
+  </div>
+
+  <!-- CALENDAR PAGE -->
+  <div class="page" id="page-calendar">
+    <div class="refresh-banner" id="cal-banner">
+      <i class="ti ti-refresh" aria-hidden="true" style="font-size:16px"></i>
+      <span id="cal-banner-text">Pulling your latest calendar…</span>
+    </div>
+    <div id="cal-content">
+      <div class="empty"><i class="ti ti-calendar" aria-hidden="true"></i>Loading…</div>
+    </div>
+  </div>
+
+  <!-- SYNC / SETUP PAGE -->
+  <div class="page" id="page-setup">
+    <div class="section-head">Google Sheets sync</div>
+    <div class="setup-card">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div>Create a Google Sheet called <em>Family Tasks</em>. Add these headers in row 1:<br><code>id</code> <code>name</code> <code>cat</code> <code>owner</code> <code>due</code> <code>recur</code> <code>done</code></div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div>In the sheet: <strong>Extensions → Apps Script</strong>. Paste the script below, then <strong>Deploy → New deployment → Web app</strong>. Set "Who has access" to <strong>Anyone</strong>. Copy the web app URL.</div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div>Paste your Apps Script web app URL here and tap Save:</div>
+      </div>
+      <div class="url-row">
+        <input type="url" id="sheet-url" placeholder="https://script.google.com/macros/s/...">
+        <button onclick="saveUrl()">Save</button>
+      </div>
+      <div class="status-line" id="url-status"></div>
+    </div>
+
+    <div id="sync-badge" class="sync-status-badge" style="margin-bottom:14px">
+      <div class="dot" id="sync-dot"></div>
+      <span id="sync-label">No sheet URL saved</span>
+    </div>
+
+    <div class="section-head">Apps Script code</div>
+    <div class="script-box" id="script-el"></div>
+    <button class="copy-btn" onclick="copyScript()">
+      <i class="ti ti-copy" aria-hidden="true" style="font-size:14px"></i> Copy script
+    </button>
+
+    <div class="section-head" style="margin-top:20px">Pull from Google Sheet</div>
+    <div class="setup-card">
+      <div class="setup-step">
+        <div class="step-num"><i class="ti ti-download" aria-hidden="true" style="font-size:12px"></i></div>
+        <div>If tasks were added in the sheet by Julia or on another device, tap below to pull the latest.<br><br>
+        <button onclick="pullFromSheet()" style="padding:8px 16px;border-radius:var(--radius-md);border:0.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-size:13px">Pull from sheet</button>
+        <div class="status-line" id="pull-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">Calendar sync</div>
+    <div class="setup-card">
+      <div class="setup-step">
+        <div class="step-num"><i class="ti ti-calendar" aria-hidden="true" style="font-size:12px"></i></div>
+        <div>The Calendar tab pulls directly from your Google Calendar through the same Apps Script as your tasks — no manual refresh needed. It updates automatically every time you open the Calendar tab.<br><br>
+        <strong>One-time setup:</strong> re-deploy your Apps Script (Deploy → Manage deployments → Edit → New version) after adding the updated calendar code, and re-authorize when prompted so it can read your calendar.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="openModal()" id="fab" aria-label="Add task">
+  <i class="ti ti-plus" aria-hidden="true"></i>
+</button>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modal-h">New task</h2>
+    <div class="frow">
+      <label>Task name</label>
+      <input type="text" id="f-name" placeholder="e.g. Book dentist" autocomplete="off">
+    </div>
+    <div class="frow2">
+      <div class="frow">
+        <label>Category</label>
+        <select id="f-cat">
+          <option>Home</option>
+          <option>Parenting</option>
+          <option>Vacation</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="frow">
+        <label>Owner</label>
+        <select id="f-owner">
+          <option>Joe</option>
+          <option>Julia</option>
+          <option>Both</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow2">
+      <div class="frow">
+        <label>Due date</label>
+        <input type="date" id="f-due">
+      </div>
+      <div class="frow">
+        <label>Recurring</label>
+        <select id="f-recur">
+          <option value="">One-time</option>
+          <option value="Daily">Daily</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Biweekly">Biweekly</option>
+          <option value="Monthly">Monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="btn-c" onclick="closeModal()">Cancel</button>
+      <button class="btn-p" onclick="saveTask()">Save task</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SK = 'family_hub_v1';
+const SU_KEY = 'family_hub_sheet_url';
+const CAL_KEY = 'family_hub_calendar';
+
+let tasks = [];
+let filter = 'All';
+let editId = null;
+let sheetUrl = '';
+let syncing = false;
+
+const SCRIPT = `function doGet(e) {
+  var action = (e && e.parameter) ? e.parameter.action : null;
+  if (action === 'calendar') {
+    return getCalendarEvents();
+  }
+  var sh = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName('Family Tasks') ||
+    SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var rows = sh.getDataRange().getValues();
+  var out = [];
+  for (var i = 1; i < rows.length; i++) {
+    if (!rows[i][0]) continue;
+    out.push({
+      id: rows[i][0], name: rows[i][1], cat: rows[i][2],
+      owner: rows[i][3], due: rows[i][4], recur: rows[i][5],
+      done: rows[i][6] === 'true' || rows[i][6] === true
+    });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(out))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getCalendarEvents() {
+  var cal = CalendarApp.getDefaultCalendar();
+  var now = new Date();
+  var future = new Date();
+  future.setDate(now.getDate() + 90);
+  var events = cal.getEvents(now, future);
+  var out = [];
+  for (var i = 0; i < events.length; i++) {
+    var ev = events[i];
+    var isAllDay = ev.isAllDayEvent();
+    var startVal, endVal;
+    if (isAllDay) {
+      startVal = Utilities.formatDate(ev.getStartTime(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      endVal = Utilities.formatDate(ev.getEndTime(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    } else {
+      startVal = ev.getStartTime().toISOString();
+      endVal = ev.getEndTime().toISOString();
+    }
+    out.push({
+      title: ev.getTitle(),
+      start: startVal,
+      end: endVal,
+      allDay: isAllDay
+    });
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(out))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName('Family Tasks') ||
+    SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var tasks = JSON.parse(e.postData.contents).tasks;
+  sh.clearContents();
+  sh.appendRow(['id','name','cat','owner','due','recur','done']);
+  for (var i = 0; i < tasks.length; i++) {
+    var t = tasks[i];
+    sh.appendRow([t.id, t.name, t.cat, t.owner,
+      t.due || '', t.recur || '', t.done ? 'true' : 'false']);
+  }
+  return ContentService
+    .createTextOutput('ok')
+    .setMimeType(ContentService.MimeType.TEXT);
+}`;
+
+// ── Init ──────────────────────────────────────────────
+function init() {
+  try { const r = localStorage.getItem(SK); if (r) tasks = JSON.parse(r); } catch(e) {}
+  try { sheetUrl = localStorage.getItem(SU_KEY) || ''; } catch(e) {}
+
+  if (!tasks.length && !sheetUrl) seedTasks();
+
+  document.getElementById('sheet-url').value = sheetUrl;
+  document.getElementById('script-el').textContent = SCRIPT;
+  updateSyncBadge();
+  renderTasks(); // show cached/local tasks immediately so UI isn't empty
+
+  // If a sheet is connected, pull the real shared list right away so stale
+  // local/cached tasks never linger — the sheet is always the source of truth.
+  if (sheetUrl) pullFromSheet(false, true);
+
+  // Show cached calendar events immediately, then refresh in background
+  try {
+    const ev = localStorage.getItem(CAL_KEY);
+    if (ev) renderCalendar(JSON.parse(ev));
+  } catch(e) {}
+}
+
+function seedTasks() {
+  const d = n => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().split('T')[0]; };
+  tasks = [
+    { id:1, name:'Grocery run', cat:'Home', owner:'Joe', due:d(1), recur:'Weekly', done:false },
+    { id:2, name:'Book pediatrician checkup', cat:'Parenting', owner:'Julia', due:d(3), recur:'', done:false },
+    { id:3, name:'Research Laguna Beach hotels', cat:'Vacation', owner:'Joe', due:d(5), recur:'', done:false },
+    { id:4, name:'Pay HOA dues', cat:'Home', owner:'Julia', due:d(-1), recur:'Monthly', done:false },
+    { id:5, name:'Preschool pickup – Tue/Thu', cat:'Parenting', owner:'Julia', due:d(2), recur:'Weekly', done:false },
+    { id:6, name:'Dry cleaning pickup', cat:'Home', owner:'Joe', due:d(0), recur:'', done:false },
+  ];
+  saveLocal();
+}
+
+// ── Storage ───────────────────────────────────────────
+function saveLocal() { try { localStorage.setItem(SK, JSON.stringify(tasks)); } catch(e) {} }
+function nextId() { return tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1; }
+
+// ── Render tasks ──────────────────────────────────────
+function fmtDue(due) {
+  if (!due) return null;
+  const t = new Date(due + 'T00:00:00');
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.round((t - now) / 86400000);
+  if (diff < 0) return { txt: Math.abs(diff) + 'd overdue', late: true };
+  if (diff === 0) return { txt: 'Today', late: false };
+  if (diff === 1) return { txt: 'Tomorrow', late: false };
+  return { txt: t.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), late: false };
+}
+
+function ownerPill(o) {
+  if (o === 'Joe') return `<span class="pill pill-joe">Joe</span>`;
+  if (o === 'Julia') return `<span class="pill pill-julia">Julia</span>`;
+  return `<span class="pill pill-both">Both</span>`;
+}
+
+function taskHTML(t) {
+  const due = t.due ? fmtDue(t.due) : null;
+  return `<div class="task-card${t.done ? ' done-card' : ''}" id="tc-${t.id}">
+    <button class="chk${t.done ? ' ticked' : ''}" onclick="toggle(${t.id})" aria-label="${t.done ? 'Undo' : 'Complete'}">
+      <i class="ti ti-check" aria-hidden="true" style="font-size:12px${t.done ? '' : ';opacity:.3'}"></i>
+    </button>
+    <div class="tbody">
+      <div class="tname">${t.name}</div>
+      <div class="tmeta">
+        ${ownerPill(t.owner)}
+        <span class="pill pill-cat">${t.cat}</span>
+        ${t.recur ? `<span class="pill pill-recur"><i class="ti ti-refresh" aria-hidden="true" style="font-size:9px"></i>${t.recur}</span>` : ''}
+        ${due ? `<span class="due-txt${due.late ? ' late' : ''}">${due.txt}</span>` : ''}
+      </div>
+    </div>
+    <div class="tact">
+      <button class="ibt" onclick="editTask(${t.id})" aria-label="Edit"><i class="ti ti-edit" aria-hidden="true" style="font-size:15px"></i></button>
+      <button class="ibt" onclick="delTask(${t.id})" aria-label="Delete"><i class="ti ti-trash" aria-hidden="true" style="font-size:15px"></i></button>
+    </div>
+  </div>`;
+}
+
+function renderTasks() {
+  const active = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  const joe = active.filter(t => t.owner === 'Joe' || t.owner === 'Both').length;
+  const julia = active.filter(t => t.owner === 'Julia' || t.owner === 'Both').length;
+  const overdue = active.filter(t => { if (!t.due) return false; return new Date(t.due + 'T00:00:00') < new Date().setHours(0,0,0,0); }).length;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="stat-n">${joe}</div><div class="stat-l">Joe's tasks</div></div>
+    <div class="stat"><div class="stat-n">${julia}</div><div class="stat-l">Julia's tasks</div></div>
+    <div class="stat"><div class="stat-n" style="${overdue ? 'color:var(--danger-text)' : ''}">${overdue}</div><div class="stat-l">Overdue</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--success-text)">${done.length}</div><div class="stat-l">Done</div></div>`;
+
+  let vis = active.slice();
+  if (filter === 'Joe') vis = vis.filter(t => t.owner === 'Joe' || t.owner === 'Both');
+  else if (filter === 'Julia') vis = vis.filter(t => t.owner === 'Julia' || t.owner === 'Both');
+  else if (filter !== 'All') vis = vis.filter(t => t.cat === filter);
+
+  vis.sort((a, b) => {
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    return new Date(a.due) - new Date(b.due);
+  });
+
+  const list = document.getElementById('task-list');
+  list.innerHTML = vis.length
+    ? vis.map(taskHTML).join('')
+    : `<div class="empty"><i class="ti ti-checkbox" aria-hidden="true"></i>All clear — add a task below</div>`;
+
+  const doneList = document.getElementById('done-list');
+  if (done.length) {
+    doneList.innerHTML = `<div class="done-section"><div class="done-label">Completed (${done.length})</div>${done.map(taskHTML).join('')}</div>`;
+  } else {
+    doneList.innerHTML = '';
+  }
+}
+
+// ── Task actions ──────────────────────────────────────
+function toggle(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  if (t.recur && !t.done) {
+    const next = new Date(t.due + 'T00:00:00');
+    if (t.recur === 'Daily') next.setDate(next.getDate() + 1);
+    else if (t.recur === 'Weekly') next.setDate(next.getDate() + 7);
+    else if (t.recur === 'Biweekly') next.setDate(next.getDate() + 14);
+    else if (t.recur === 'Monthly') next.setMonth(next.getMonth() + 1);
+    t.due = next.toISOString().split('T')[0];
+    showToast('Recurring task rescheduled');
+  } else {
+    t.done = !t.done;
+    if (t.done) showToast('Task complete ✓');
+  }
+  saveLocal(); syncSheet(); renderTasks();
+}
+
+function delTask(id) {
+  if (!confirm('Delete this task?')) return;
+  tasks = tasks.filter(x => x.id !== id);
+  saveLocal(); syncSheet(); renderTasks();
+}
+
+function editTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('modal-h').textContent = 'Edit task';
+  document.getElementById('f-name').value = t.name;
+  document.getElementById('f-cat').value = t.cat;
+  document.getElementById('f-owner').value = t.owner;
+  document.getElementById('f-due').value = t.due || '';
+  document.getElementById('f-recur').value = t.recur || '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openModal() {
+  editId = null;
+  document.getElementById('modal-h').textContent = 'New task';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-due').value = '';
+  document.getElementById('f-recur').value = '';
+  document.getElementById('f-cat').value = 'Home';
+  document.getElementById('f-owner').value = 'Joe';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 80);
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveTask() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('f-name').focus(); return; }
+  const data = {
+    name,
+    cat: document.getElementById('f-cat').value,
+    owner: document.getElementById('f-owner').value,
+    due: document.getElementById('f-due').value,
+    recur: document.getElementById('f-recur').value
+  };
+  if (editId) {
+    Object.assign(tasks.find(x => x.id === editId), data);
+    showToast('Task updated');
+  } else {
+    tasks.push({ id: nextId(), ...data, done: false });
+    showToast('Task added');
+  }
+  saveLocal(); syncSheet(); closeModal(); renderTasks();
+}
+
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderTasks();
+}
+
+// ── Sheet sync ────────────────────────────────────────
+function saveUrl() {
+  sheetUrl = document.getElementById('sheet-url').value.trim();
+  try { localStorage.setItem(SU_KEY, sheetUrl); } catch(e) {}
+  const st = document.getElementById('url-status');
+  if (sheetUrl) {
+    st.textContent = 'Saved — testing connection...';
+    st.className = 'status-line';
+    pullFromSheet(true);
+  } else {
+    st.textContent = 'URL cleared.';
+    st.className = 'status-line';
+  }
+  updateSyncBadge();
+}
+
+function updateSyncBadge() {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (sheetUrl) { dot.className = 'dot ok'; lbl.textContent = 'Sheet connected — syncs on every change'; }
+  else { dot.className = 'dot'; lbl.textContent = 'No sheet URL saved yet'; }
+}
+
+async function pullFromSheet(isTest, silent) {
+  if (!sheetUrl) return;
+  const st = isTest ? document.getElementById('url-status') : document.getElementById('pull-status');
+  if (!silent) { st.textContent = 'Connecting...'; st.className = 'status-line'; }
+  try {
+    const r = await fetch(sheetUrl, { redirect: 'follow' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (Array.isArray(data)) {
+      tasks = data;
+      saveLocal(); renderTasks();
+      if (!silent) {
+        st.textContent = data.length ? `Pulled ${data.length} tasks from sheet ✓` : 'Connected — sheet is empty (tasks will push on next save).';
+        st.className = 'status-line status-ok';
+        showToast('Synced from sheet');
+      }
+    } else if (!silent) {
+      st.textContent = 'Connected — sheet is empty (tasks will push on next save).';
+      st.className = 'status-line status-ok';
+    }
+    updateSyncBadge();
+  } catch(e) {
+    if (silent) return; // fail quietly on background auto-pulls; local cache stays as-is
+    st.textContent = 'Error: ' + e.message + '. Check URL and that deployment is set to Anyone.';
+    st.className = 'status-line status-err';
+  }
+}
+
+async function syncSheet() {
+  if (!sheetUrl || syncing) return;
+  syncing = true;
+  document.getElementById('sync-sub').textContent = 'Syncing…';
+  try {
+    const r = await fetch(sheetUrl, {
+      method: 'POST',
+      body: JSON.stringify({ tasks }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    document.getElementById('sync-sub').textContent = 'Synced ✓';
+  } catch(e) {
+    document.getElementById('sync-sub').textContent = 'Sync failed';
+  }
+  syncing = false;
+  setTimeout(() => { document.getElementById('sync-sub').textContent = 'Family hub'; }, 2500);
+}
+
+// ── Calendar ──────────────────────────────────────────
+let calLoaded = false;
+
+async function fetchCalendar() {
+  const banner = document.getElementById('cal-banner');
+  const bannerText = document.getElementById('cal-banner-text');
+  if (!sheetUrl) {
+    banner.style.display = 'flex';
+    bannerText.textContent = 'Add your Apps Script URL in the Sync tab to enable calendar sync.';
+    renderCalendar([]);
+    return;
+  }
+  banner.style.display = 'flex';
+  bannerText.textContent = 'Pulling your latest calendar…';
+  const fetchUrl = sheetUrl + (sheetUrl.includes('?') ? '&' : '?') + 'action=calendar';
+  try {
+    const r = await fetch(fetchUrl, { redirect: 'follow' });
+    const rawText = await r.text();
+    let events;
+    try {
+      events = JSON.parse(rawText);
+    } catch(parseErr) {
+      banner.style.display = 'flex';
+      bannerText.innerHTML = `Got a response but couldn't parse it as calendar data.<br><small style="opacity:.7">Status: ${r.status}. First 200 chars: ${rawText.slice(0,200).replace(/</g,'&lt;')}</small>`;
+      renderCalendar([]);
+      return;
+    }
+    if (!Array.isArray(events)) {
+      banner.style.display = 'flex';
+      bannerText.innerHTML = `Response wasn't a list of events.<br><small style="opacity:.7">Got: ${JSON.stringify(events).slice(0,200)}</small>`;
+      renderCalendar([]);
+      return;
+    }
+    renderCalendar(events);
+    if (events.length) {
+      banner.style.display = 'none';
+    } else {
+      banner.style.display = 'flex';
+      bannerText.textContent = 'Connected, but 0 events came back from the calendar endpoint.';
+    }
+    calLoaded = true;
+  } catch(e) {
+    banner.style.display = 'flex';
+    bannerText.innerHTML = `Fetch failed: ${e.message}<br><small style="opacity:.7">URL tried: ${fetchUrl}</small>`;
+    try {
+      const cached = localStorage.getItem(CAL_KEY);
+      if (cached) renderCalendar(JSON.parse(cached));
+      else renderCalendar([]);
+    } catch(e2) { renderCalendar([]); }
+  }
+}
+
+function renderCalendar(events) {
+  const el = document.getElementById('cal-content');
+  if (!events || !events.length) {
+    el.innerHTML = `<div class="empty"><i class="ti ti-calendar" aria-hidden="true"></i>No upcoming events found.</div>`;
+    return;
+  }
+  try { localStorage.setItem(CAL_KEY, JSON.stringify(events)); } catch(e) {}
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const future = events
+    .map(e => {
+      const parsed = new Date(e.allDay ? (e.start.length > 10 ? e.start.slice(0,10) : e.start) + 'T00:00:00' : e.start);
+      return { ...e, _parsed: parsed };
+    })
+    .filter(e => !isNaN(e._parsed) && e._parsed >= today)
+    .sort((a, b) => a._parsed - b._parsed);
+
+  function toDateOnly(s) {
+    return (s.length > 10 && s.includes('T')) ? s.slice(0,10) : s;
+  }
+  // Returns a Date object that correctly reflects the LOCAL calendar day/time.
+  // All-day events: date-only string, no timezone conversion needed.
+  // Timed events: full ISO with Z — let the browser convert UTC to local automatically.
+  function localEventDate(ev, useEnd) {
+    if (ev.allDay) {
+      let dOnly = toDateOnly(useEnd ? (ev.end || ev.start) : ev.start);
+      if (useEnd && ev.end && ev.end !== ev.start) {
+        const eTmp = new Date(toDateOnly(ev.end) + 'T00:00:00');
+        eTmp.setDate(eTmp.getDate() - 1); // Google's all-day end date is exclusive
+        dOnly = eTmp.toISOString().slice(0,10);
+      }
+      return new Date(dOnly + 'T00:00:00');
+    }
+    return new Date(useEnd ? (ev.end || ev.start) : ev.start);
+  }
+  function eventSpansWeekend(ev) {
+    const startD = localEventDate(ev, false);
+    let endD = localEventDate(ev, true);
+    if (endD < startD) endD = new Date(startD);
+    const cursor = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate());
+    const endCursor = new Date(endD.getFullYear(), endD.getMonth(), endD.getDate());
+    while (cursor <= endCursor) {
+      const day = cursor.getDay();
+      if (day === 0 || day === 5 || day === 6) return true;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return false;
+  }
+  function evCard(ev) {
+    const d = localEventDate(ev, false);
+    const endD = localEventDate(ev, true);
+    const isMultiDay = ev.allDay && (endD.toDateString() !== d.toDateString());
+    let timeLabel;
+    if (isMultiDay) {
+      timeLabel = `Through ${endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    } else {
+      timeLabel = ev.allDay ? 'All day' : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    return `<div class="cal-card">
+      <div class="cal-date">
+        <div class="cal-month">${d.toLocaleDateString('en-US', { month: 'short' })}</div>
+        <div class="cal-day">${d.getDate()}</div>
+        <div class="cal-dow">${d.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+      </div>
+      <div class="cal-divider"></div>
+      <div class="cal-info">
+        <div class="cal-name">${ev.title}</div>
+        <div class="cal-time">${timeLabel}</div>
+      </div>
+    </div>`;
+  }
+  const wn = future.filter(e => !eventSpansWeekend(e));
+  const we = future.filter(e => eventSpansWeekend(e));
+  el.innerHTML = `
+    <div class="cal-section">
+      <div class="cal-head">
+        <div class="cal-icon wknight"><i class="ti ti-moon" aria-hidden="true"></i></div>
+        <div><div class="cal-title">Weeknights</div><div class="cal-subtitle">Mon–Thu · ${wn.length} upcoming</div></div>
+      </div>
+      ${wn.length ? wn.map(evCard).join('') : '<div class="cal-empty">No weeknight events</div>'}
+    </div>
+    <div class="cal-section">
+      <div class="cal-head">
+        <div class="cal-icon wkend"><i class="ti ti-sun" aria-hidden="true"></i></div>
+        <div><div class="cal-title">Weekends</div><div class="cal-subtitle">Fri–Sun · ${we.length} upcoming</div></div>
+      </div>
+      ${we.length ? we.map(evCard).join('') : '<div class="cal-empty">No weekend events</div>'}
+    </div>`;
+}
+
+// ── Utilities ─────────────────────────────────────────
+function showPage(p, el) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('on'));
+  document.getElementById('page-' + p).classList.add('on');
+  el.classList.add('on');
+  document.getElementById('fab').style.display = p === 'tasks' ? 'flex' : 'none';
+  if (p === 'calendar') fetchCalendar();
+  if (p === 'tasks' && sheetUrl) pullFromSheet(false, true);
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(SCRIPT).then(() => showToast('Script copied!')).catch(() => {
+    const el = document.getElementById('script-el');
+    const sel = window.getSelection(); const range = document.createRange();
+    range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
+    showToast('Select all + copy');
+  });
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+init();
+</script>
+</body>
+</html>
